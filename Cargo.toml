@@ -1,0 +1,29 @@
+################################################################################
+#                               Project Manifest                               #
+#                                                                              #
+# This file describes the Rust project to the Cargo build tool for operations. #
+################################################################################
+
+[package]
+name = "surety"
+version = "0.1.0"
+authors = [
+	"myrrlyn <self@myrrlyn.dev>",
+]
+edition = "2018"
+
+categories = [
+]
+description = "A template base manifest"
+documentation = "https://docs.rs/surety"
+homepage = "https://myrrlyn.net/crates/surety"
+keywords = [
+]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/myrrlyn/surety"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+funty = "1"
