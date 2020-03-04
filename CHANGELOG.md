@@ -16,6 +16,8 @@ Initial construction.
 - `Wrapping<T>` marker forces integer arithmetic to consider `min_value()` and
   `max_value()` as adjacent numbers, with a continuous number circle instead of
   a number line.
+- `Overflowing<T>` marker combines `Wrapping`’s arithmetic behavior with
+  `Checked`’s overflow detection.
 - `Saturating<T>` marker forces integer arithmetic to clamp at the minimum and
   maximum values, essentially changing the number line from a circle to a walled
   box.

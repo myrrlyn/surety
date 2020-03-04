@@ -6,13 +6,14 @@ overflow arithmetic defined as inherent methods, but this requires replacing
 operators with method calls, and is unusable in generic contexts that use the
 arithmetic operator traits.
 
-This crate provides `Checked`, `Wrapping`, and `Saturating` wrappers which
-implement the arithmetic operators by deferring to their wrapped integer’s
-inherent methods.
+This crate provides `Checked`, `Overflowing`, `Wrapping`, and `Saturating`
+wrappers which implement the arithmetic operators by deferring to their wrapped
+integer’s inherent methods.
 
 In addition to these wrappers, this crate provides an extension trait, `Ensure`,
-on the fundamental integers which adds the `.checked()`, `.wrapping()`, and
-`.saturating()` conversion methods to wrap an integer in the named type.
+on the fundamental integers which adds the `.checked()`, `.overflowing()`,
+`.wrapping()`, and `.saturating()` conversion methods to wrap an integer in the
+named type.
 
 # Examples
 
@@ -35,6 +36,20 @@ let reverse = wrapped - 20;
 assert_eq!(reverse, 110);
 ```
 
+If you wish to know that an overflow occurred, without changing behavior, you
+can use `Overflowing<T>` to perform wrapping arithmetic that detects overflow.
+You still get a result, as well as a flag indicating that it is no longer in the
+number line.
+
+```rust
+# use surety::*;
+let num = 120i8.overflowing();
+let ovf = num + 10;
+//  120 -> 127 -> -128 -> -126
+assert_eq!(ovf, -126);
+assert!(ovf.has_overflowed);
+```
+
 In addition, you can saturate at the minimum and maximum values, without
 wrapping around to the other edge:
 
@@ -42,7 +57,7 @@ wrapping around to the other edge:
 # use surety::*;
 # let reverse = 110i8.wrapping();
 //  get the value, and mark it as saturating at the boundary
-let sat = reverse.value().saturating();
+let sat = reverse.value.saturating();
 
 let max = sat + 20;
 assert_eq!(max, i8::max_value());
@@ -79,11 +94,13 @@ assert_eq!(reset, Some(0));
 #![no_std]
 
 mod checked;
+mod overflowing;
 mod saturating;
 mod wrapping;
 
 pub use self::{
 	checked::Checked,
+	overflowing::Overflowing,
 	saturating::Saturating,
 	wrapping::Wrapping,
 };
@@ -100,6 +117,9 @@ pub trait Ensure: IsInteger {
 	/// Selects checked-overflow arithmetic.
 	fn checked(self) -> Checked<Self>;
 
+	/// Selects wrapping, but detected, overflow arithmetic.
+	fn overflowing(self) -> Overflowing<Self>;
+
 	/// Selects wrapping-overflow arithmetic.
 	fn wrapping(self) -> Wrapping<Self>;
 
@@ -109,6 +129,10 @@ pub trait Ensure: IsInteger {
 
 impl<T: IsInteger> Ensure for T {
 	fn checked(self) -> Checked<Self> {
+		self.into()
+	}
+
+	fn overflowing(self) -> Overflowing<Self> {
 		self.into()
 	}
 

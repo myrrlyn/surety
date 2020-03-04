@@ -26,45 +26,48 @@ arithmetic stops at the value boundary until an operation reverses direction.
 Resumed arithmetic always begins from the boundary value, so all information
 about intermediate results is lost.
 **/
+#[repr(transparent)]
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct Saturating<T: IsInteger> {
-	inner: T,
+	/// The contained integer.
+	pub value: T,
 }
 
 impl<T: IsInteger> Saturating<T> {
-	/// Removes the `Saturating` marker, returting the inner value.
-	pub fn value(self) -> T {
-		self.inner
+	/// Saturating integer exponentiation. Computes `self.value.pow(exp)`,
+	/// saturating at the numeric bounds instead of overflowing.
+	pub fn saturating_pow(self, exp: u32) -> Self {
+		self.value.saturating_pow(exp).into()
 	}
 }
 
 impl<T: IsInteger> PartialEq<T> for Saturating<T> {
 	fn eq(&self, other: &T) -> bool {
-		self.inner.eq(other)
+		self.value.eq(other)
 	}
 }
 
 impl<T: IsInteger> PartialOrd<T> for Saturating<T> {
 	fn partial_cmp(&self, other: &T) -> Option<Ordering> {
-		self.inner.partial_cmp(other)
+		self.value.partial_cmp(other)
 	}
 }
 
 impl<T: IsInteger> AsRef<T> for Saturating<T> {
 	fn as_ref(&self) -> &T {
-		&self.inner
+		&self.value
 	}
 }
 
 impl<T: IsInteger> AsMut<T> for Saturating<T> {
 	fn as_mut(&mut self) -> &mut T {
-		&mut self.inner
+		&mut self.value
 	}
 }
 
 impl<T: IsInteger> From<T> for Saturating<T> {
-	fn from(inner: T) -> Self {
-		Self { inner }
+	fn from(value: T) -> Self {
+		Self { value }
 	}
 }
 
@@ -72,7 +75,7 @@ impl<T: IsInteger> Add<Self> for Saturating<T> {
 	type Output = Self;
 
 	fn add(self, rhs: Self) -> Self {
-		self.inner.saturating_add(rhs.inner).into()
+		self.value.saturating_add(rhs.value).into()
 	}
 }
 
@@ -88,7 +91,7 @@ impl<T: IsInteger> Add<T> for Saturating<T> {
 	type Output = Self;
 
 	fn add(self, rhs: T) -> Self {
-		self.inner.saturating_add(rhs).into()
+		self.value.saturating_add(rhs).into()
 	}
 }
 
@@ -128,7 +131,7 @@ impl<T: IsInteger> Sub<Self> for Saturating<T> {
 	type Output = Self;
 
 	fn sub(self, rhs: Self) -> Self {
-		self.inner.saturating_sub(rhs.inner).into()
+		self.value.saturating_sub(rhs.value).into()
 	}
 }
 
@@ -144,7 +147,7 @@ impl<T: IsInteger> Sub<T> for Saturating<T> {
 	type Output = Self;
 
 	fn sub(self, rhs: T) -> Self {
-		self.inner.saturating_sub(rhs).into()
+		self.value.saturating_sub(rhs).into()
 	}
 }
 
@@ -184,7 +187,7 @@ impl<T: IsInteger> Mul<Self> for Saturating<T> {
 	type Output = Self;
 
 	fn mul(self, rhs: Self) -> Self {
-		self.inner.saturating_mul(rhs.inner).into()
+		self.value.saturating_mul(rhs.value).into()
 	}
 }
 
@@ -200,7 +203,7 @@ impl<T: IsInteger> Mul<T> for Saturating<T> {
 	type Output = Self;
 
 	fn mul(self, rhs: T) -> Self {
-		self.inner.saturating_mul(rhs).into()
+		self.value.saturating_mul(rhs).into()
 	}
 }
 

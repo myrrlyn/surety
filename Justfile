@@ -4,48 +4,56 @@
 # Set of routines to execute for development work.                             #
 ################################################################################
 
-# Run the benchmarks. Currently, this requires the nightly compiler series.
-bench:
-	cargo +nightly bench
+# Builds the library.
+build:
+	cargo build --no-default-features
+	cargo build --all-features
 
-# Build the project, after checking that it is valid.
-build: check
-	cargo build
-
-# Runs the checker and linter.
+# Checks the library for syntax and HIR errors.
 check:
-	cargo check
-	cargo clippy
+	cargo check --no-default-features
+	cargo check --all-features
 
-# Destroys build artifacts.
+# Runs all of the recipes necessary for pre-publish.
+checkout: format check lint build doc test package
+
+# Continually runs the development routines.
+ci:
+	just loop dev
+
+# Removes all build artifacts.
 clean:
 	cargo clean
 
-# Documents the project, after checking that it is valid.
-doc: check
-	cargo doc
+# Runs the development routines.
+dev: format lint doc test
 
-# Runs a Justfile recipe on every change to the workspace.
+# Builds the crate documentation.
+doc:
+	cargo doc --all-features --document-private-items
+
+# Runs the formatter on all Rust files.
+format:
+	cargo +nightly fmt -- --config-path rustfmt-nightly.toml
+
+# Runs the linter.
+lint: check
+	cargo clippy --no-default-features
+	cargo clippy --all-features
+
+# Continually runs some recipe from this file.
 loop action:
-	cargo watch -s "just {{action}}"
+	watchexec -- "just {{action}}"
 
-# Runs the project under the Miri interpreter. This is currently nightly-only.
-miri:
-	cargo +nightly miri test
-
-# Prepares the project for package deployment.
-#
-# This allows uncommitted VCS files, as a convenience for development.
-package: test doc
+# Packages the crate in preparation for publishing on crates.io
+package:
 	cargo package --allow-dirty
 
-# Publishes the project to crates.io.
-#
-# This repackages the project and fails on a dirty VCS checkout.
-publish: test doc
-	cargo package # no --allow-dirty this time
+# Publishes the crate to crates.io
+publish: checkout
 	cargo publish
 
-# Runs the test suite.
-test: build
-	cargo test
+# Runs the test suites.
+test: check lint
+	cargo test --no-default-features
+	cargo test --all-features
